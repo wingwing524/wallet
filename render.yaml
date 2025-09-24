@@ -2,12 +2,10 @@ services:
   - type: web
     name: wallet-app
     env: node
-    buildCommand: npm run build
-    startCommand: npm start
+    buildCommand: node build.js
+    startCommand: node server/index.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: JWT_SECRET
         value: your-super-secret-jwt-key-change-this-in-production-12345
-      - key: CLIENT_URL
-        sync: false
