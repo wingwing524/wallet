@@ -7,7 +7,7 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "nodemon server/index.js",
     "client": "cd client && npm start",
-    "build": "echo 'Build complete - using committed build files'",
+    "build": "npm install --production",
     "start": "node server/index.js",
     "migrate": "node server/migrate.js"
   },
