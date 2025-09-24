@@ -6,8 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 
 # Production builds
-build/
-dist/
 # Note: client/build/ is committed for deployment
 
 # Environment variables
