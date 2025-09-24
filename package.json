@@ -7,7 +7,7 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "nodemon server/index.js",
     "client": "cd client && npm start",
-    "build": "node build.js",
+    "build": "echo 'Build step - installing client deps and building' && cd client && npm install && npm run build",
     "start": "node server/index.js",
     "migrate": "node server/migrate.js"
   },
