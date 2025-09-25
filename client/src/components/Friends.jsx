@@ -210,7 +210,7 @@ const Friends = () => {
                     </span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-label">{t('totalSpent')}</span>
+                    <span className="stat-label">{t('totalSpentLabel')}</span>
                     <span className="stat-value">
                       ${friend.stats.totalSpent?.toFixed(2) || '0.00'}
                     </span>

@@ -102,8 +102,8 @@ const resources = {
       requestSent: "請求已發送",
       alreadyFriends: "已是朋友",
       search: "搜尋",
-      totalSpent: "總支出：",
-      monthlySpent: "月支出：",
+      totalSpentLabel: "總支出：",
+      monthlySpentLabel: "月支出：",
       
       // Common
       loading: "載入中...",
@@ -210,8 +210,8 @@ const resources = {
       requestSent: "Request sent",
       alreadyFriends: "Already friends",
       search: "Search",
-      totalSpent: "Total spent:",
-      monthlySpent: "Monthly spent:",
+      totalSpentLabel: "Total spent:",
+      monthlySpentLabel: "Monthly spent:",
       
       // Common
       loading: "Loading...",
@@ -318,8 +318,8 @@ const resources = {
       requestSent: "リクエストを送信しました",
       alreadyFriends: "すでに友達です",
       search: "検索",
-      totalSpent: "総支出：",
-      monthlySpent: "月支出：",
+      totalSpentLabel: "総支出：",
+      monthlySpentLabel: "月支出：",
       
       // Common
       loading: "読み込み中...",
@@ -426,8 +426,8 @@ const resources = {
       requestSent: "请求已发送",
       alreadyFriends: "已是朋友",
       search: "搜索",
-      totalSpent: "总支出：",
-      monthlySpent: "月支出：",
+      totalSpentLabel: "总支出：",
+      monthlySpentLabel: "月支出：",
       
       // Common
       loading: "加载中...",
