@@ -57,7 +57,10 @@ const Dashboard = ({ expenses, loading }) => {
   };
 
   const BudgetProgressCircle = ({ spent, budget }) => {
-    const percentage = Math.min((spent / budget) * 100, 100);
+    // Ensure spent and budget are numbers
+    const spentAmount = Number(spent) || 0;
+    const budgetAmount = Number(budget) || 1;
+    const percentage = Math.min((spentAmount / budgetAmount) * 100, 100);
     const radius = 80;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
@@ -97,10 +100,10 @@ const Dashboard = ({ expenses, loading }) => {
           />
         </svg>
         <div className="budget-progress-content">
-          <div className="budget-spent">${spent.toFixed(2)}</div>
-          <div className="budget-total">of ${budget.toFixed(2)}</div>
+          <div className="budget-spent">${spentAmount.toFixed(2)}</div>
+          <div className="budget-total">of ${budgetAmount.toFixed(2)}</div>
           <div className="budget-remaining">
-            ${Math.max(0, budget - spent).toFixed(2)} left
+            ${Math.max(0, budgetAmount - spentAmount).toFixed(2)} left
           </div>
         </div>
       </div>
@@ -149,12 +152,12 @@ const Dashboard = ({ expenses, loading }) => {
         <div className="budget-content">
           <BudgetProgressCircle spent={monthlyData.total} budget={monthlyBudget} />
           <div className="budget-insights">
-            {monthlyData.total > monthlyBudget && (
+            {(monthlyData.total || 0) > monthlyBudget && (
               <div className="budget-warning">
-                ⚠️ You've exceeded your budget by ${(monthlyData.total - monthlyBudget).toFixed(2)}
+                ⚠️ You've exceeded your budget by ${((monthlyData.total || 0) - monthlyBudget).toFixed(2)}
               </div>
             )}
-            {monthlyData.total <= monthlyBudget * 0.8 && (
+            {(monthlyData.total || 0) <= monthlyBudget * 0.8 && (
               <div className="budget-success">
                 ✅ Great job! You're staying within budget
               </div>
