@@ -288,6 +288,102 @@ app.delete('/api/expenses/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Friend System Routes
+
+// Search users
+app.get('/api/users/search', authenticateToken, async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ error: 'Search query must be at least 2 characters' });
+    }
+
+    const users = await db.searchUsers(q.trim(), req.userId);
+    res.json(users);
+  } catch (error) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ error: 'Failed to search users' });
+  }
+});
+
+// Send friend request
+app.post('/api/friends/request', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const result = await db.sendFriendRequest(req.userId, userId);
+    res.status(201).json({ message: 'Friend request sent', ...result });
+  } catch (error) {
+    if (error.message.includes('already exists') || error.message.includes('not found') || error.message.includes('yourself')) {
+      return res.status(400).json({ error: error.message });
+    }
+    console.error('Error sending friend request:', error);
+    res.status(500).json({ error: 'Failed to send friend request' });
+  }
+});
+
+// Respond to friend request
+app.post('/api/friends/respond', authenticateToken, async (req, res) => {
+  try {
+    const { friendshipId, action } = req.body;
+    
+    if (!friendshipId || !action) {
+      return res.status(400).json({ error: 'Friendship ID and action are required' });
+    }
+
+    const result = await db.respondToFriendRequest(friendshipId, req.userId, action);
+    res.json({ message: `Friend request ${action}ed`, ...result });
+  } catch (error) {
+    if (error.message.includes('not found') || error.message.includes('Invalid')) {
+      return res.status(400).json({ error: error.message });
+    }
+    console.error('Error responding to friend request:', error);
+    res.status(500).json({ error: 'Failed to respond to friend request' });
+  }
+});
+
+// Get friends list
+app.get('/api/friends', authenticateToken, async (req, res) => {
+  try {
+    const friends = await db.getFriends(req.userId);
+    res.json(friends);
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    res.status(500).json({ error: 'Failed to fetch friends' });
+  }
+});
+
+// Get pending friend requests
+app.get('/api/friends/pending', authenticateToken, async (req, res) => {
+  try {
+    const requests = await db.getPendingFriendRequests(req.userId);
+    res.json(requests);
+  } catch (error) {
+    console.error('Error fetching pending requests:', error);
+    res.status(500).json({ error: 'Failed to fetch pending requests' });
+  }
+});
+
+// Get friend's stats
+app.get('/api/friends/:friendId/stats', authenticateToken, async (req, res) => {
+  try {
+    const { friendId } = req.params;
+    const stats = await db.getFriendStats(friendId, req.userId);
+    res.json(stats);
+  } catch (error) {
+    if (error.message.includes('Not friends')) {
+      return res.status(403).json({ error: error.message });
+    }
+    console.error('Error fetching friend stats:', error);
+    res.status(500).json({ error: 'Failed to fetch friend stats' });
+  }
+});
+
 // Get categories
 app.get('/api/categories', (req, res) => {
   res.json(categories);

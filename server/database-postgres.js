@@ -542,6 +542,88 @@ class ExpenseDatabase {
     }
   }
 
+  async getFriendStats(friendId, currentUserId) {
+    const client = await this.pool.connect();
+    
+    try {
+      // First, verify they are friends
+      const friendshipQuery = `
+        SELECT id FROM friends 
+        WHERE ((requester_id = $1 AND addressee_id = $2) OR (requester_id = $2 AND addressee_id = $1))
+          AND status = 'accepted'
+      `;
+      
+      const friendshipResult = await client.query(friendshipQuery, [currentUserId, friendId]);
+      
+      if (friendshipResult.rows.length === 0) {
+        throw new Error('Not friends with this user');
+      }
+
+      // Get friend's total stats
+      const totalStatsQuery = `
+        SELECT 
+          COUNT(*) as totalExpenses,
+          COALESCE(ROUND(SUM(amount)::numeric, 2), 0) as totalAmount,
+          COALESCE(ROUND(AVG(amount)::numeric, 2), 0) as averageAmount
+        FROM expenses
+        WHERE user_id = $1
+      `;
+      
+      const totalStatsResult = await client.query(totalStatsQuery, [friendId]);
+      const totalStats = totalStatsResult.rows[0];
+
+      // Get monthly data for the last 6 months
+      const monthlyDataQuery = `
+        SELECT 
+          TO_CHAR(date, 'YYYY-MM') as month,
+          COUNT(*) as count,
+          COALESCE(ROUND(SUM(amount)::numeric, 2), 0) as total
+        FROM expenses
+        WHERE user_id = $1 
+          AND date >= CURRENT_DATE - INTERVAL '6 months'
+        GROUP BY TO_CHAR(date, 'YYYY-MM')
+        ORDER BY month DESC
+      `;
+      
+      const monthlyDataResult = await client.query(monthlyDataQuery, [friendId]);
+
+      // Get category breakdown
+      const categoryQuery = `
+        SELECT 
+          category,
+          COUNT(*) as count,
+          COALESCE(ROUND(SUM(amount)::numeric, 2), 0) as total
+        FROM expenses
+        WHERE user_id = $1
+        GROUP BY category
+        ORDER BY total DESC
+      `;
+      
+      const categoryResult = await client.query(categoryQuery, [friendId]);
+
+      return {
+        totalExpenses: parseInt(totalStats.totalexpenses) || 0,
+        totalAmount: parseFloat(totalStats.totalamount) || 0,
+        averageAmount: parseFloat(totalStats.averageamount) || 0,
+        monthlyData: monthlyDataResult.rows.map(row => ({
+          month: row.month,
+          count: parseInt(row.count) || 0,
+          total: parseFloat(row.total) || 0
+        })),
+        categoryBreakdown: categoryResult.rows.map(row => ({
+          category: row.category,
+          count: parseInt(row.count) || 0,
+          total: parseFloat(row.total) || 0
+        }))
+      };
+    } catch (error) {
+      console.error('❌ Failed to get friend stats:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   async getStats() {
     const client = await this.pool.connect();
     

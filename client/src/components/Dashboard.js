@@ -27,13 +27,17 @@ const Dashboard = ({ expenses, loading }) => {
       return expenseDate >= monthStart && expenseDate <= monthEnd;
     });
 
-    // Calculate totals
-    const total = monthlyExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+    // Calculate totals - ensure amounts are numbers
+    const total = monthlyExpenses.reduce((sum, expense) => {
+      const amount = Number(expense.amount) || 0;
+      return sum + amount;
+    }, 0);
     const count = monthlyExpenses.length;
 
     // Calculate category totals
     const categoryTotals = monthlyExpenses.reduce((acc, expense) => {
-      acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
+      const amount = Number(expense.amount) || 0;
+      acc[expense.category] = (acc[expense.category] || 0) + amount;
       return acc;
     }, {});
 
@@ -41,7 +45,7 @@ const Dashboard = ({ expenses, loading }) => {
     const topCategories = Object.entries(categoryTotals)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
-      .map(([category, amount]) => ({ category, amount }));
+      .map(([category, amount]) => ({ category, amount: Number(amount) || 0 }));
 
     setMonthlyData({
       total,
@@ -111,10 +115,12 @@ const Dashboard = ({ expenses, loading }) => {
   };
 
   const formatCurrency = (amount) => {
+    // Ensure amount is a valid number
+    const numericAmount = Number(amount) || 0;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
-    }).format(amount);
+    }).format(numericAmount);
   };
 
   const getRecentExpenses = () => {
@@ -195,7 +201,7 @@ const Dashboard = ({ expenses, loading }) => {
                     <div 
                       className="category-bar-fill"
                       style={{
-                        width: `${(item.amount / monthlyData.total) * 100}%`,
+                        width: `${monthlyData.total > 0 ? (item.amount / monthlyData.total) * 100 : 0}%`,
                         backgroundColor: `hsl(${index * 60}, 70%, 50%)`
                       }}
                     ></div>
@@ -260,7 +266,7 @@ const Dashboard = ({ expenses, loading }) => {
           <div className="quick-stat">
             <div className="quick-stat-label">Daily average</div>
             <div className="quick-stat-value">
-              {formatCurrency(monthlyData.total / new Date().getDate())}
+              {formatCurrency((monthlyData.total || 0) / new Date().getDate())}
             </div>
           </div>
         </div>
