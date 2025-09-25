@@ -16,24 +16,31 @@ console.log('PGDATABASE:', process.env.PGDATABASE);
 let pool;
 
 try {
-  // Check if we have DATABASE_URL (Railway should provide this)
-  if (process.env.DATABASE_URL) {
-    console.log('✅ Using DATABASE_URL connection');
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    });
-  } 
-  // Fallback to individual environment variables
-  else if (process.env.PGHOST && process.env.PGPORT && process.env.PGDATABASE) {
-    console.log('✅ Using individual PG environment variables');
+  // For Railway, prioritize individual variables over DATABASE_URL
+  if (process.env.PGHOST && process.env.PGPORT && process.env.PGDATABASE) {
+    console.log('✅ Using individual PG environment variables (Railway)');
     pool = new Pool({
       host: process.env.PGHOST,
-      port: process.env.PGPORT,
+      port: parseInt(process.env.PGPORT),
       database: process.env.PGDATABASE,
       user: process.env.PGUSER,
       password: process.env.PGPASSWORD,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      // Add connection timeout settings
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      max: 10
+    });
+  }
+  // Check if we have DATABASE_URL (fallback)
+  else if (process.env.DATABASE_URL) {
+    console.log('✅ Using DATABASE_URL connection');
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      max: 10
     });
   } 
   // Last resort: use default local connection for development

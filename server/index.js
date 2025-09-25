@@ -16,6 +16,11 @@ const { createToken, authenticateToken, optionalAuth, authLimiter, apiLimiter } 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy for Railway deployment
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
@@ -311,6 +316,17 @@ process.on('SIGTERM', async () => {
 // Start server
 async function startServer() {
   console.log('🚀 Starting expense tracker server...');
+  
+  // Debug Railway environment
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🏗️  Production Environment Debug:');
+    console.log('PGHOST:', process.env.PGHOST);
+    console.log('PGPORT:', process.env.PGPORT);
+    console.log('PGDATABASE:', process.env.PGDATABASE);
+    console.log('PGUSER:', process.env.PGUSER ? '***' : 'undefined');
+    console.log('PGPASSWORD:', process.env.PGPASSWORD ? '***' : 'undefined');
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+  }
   
   const dbInitialized = await initializeDatabase();
   
