@@ -10,22 +10,17 @@ A full-stack mobile-friendly expense tracking application built with React and N
 
 ### Environment Variables
 
-Set these environment variables in your Railway deployment:
+**Railway automatically provides the PostgreSQL environment variables when you add the PostgreSQL service.**
+
+You only need to manually set these in Railway:
 
 ```bash
-# Database (automatically provided by Railway PostgreSQL service)
-DATABASE_URL=postgresql://postgres:password@host:port/database
-PGHOST=postgres.railway.internal
-PGPORT=5432
-PGUSER=postgres
-PGPASSWORD=your-password
-PGDATABASE=railway
-
-# Application
+# Application Environment
 NODE_ENV=production
-PORT=5000
 JWT_SECRET=your-super-secure-jwt-secret-key
 ```
+
+**Note:** `DATABASE_URL`, `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, and `PGDATABASE` are automatically provided by Railway's PostgreSQL service.
 
 ### Deployment Steps
 
