@@ -1,14 +1,18 @@
 import React from 'react';
 import { useAuth } from './AuthProvider';
+import { useTranslation } from 'react-i18next';
+import SettingsModal from './SettingsModal';
 
 const Header = ({ user }) => {
   const { logout } = useAuth();
-  const currentDate = new Date().toLocaleDateString('en-US', {
+  const { t, i18n } = useTranslation();
+  const currentDate = new Date().toLocaleDateString(i18n.language === 'zh-TW' ? 'zh-TW' : i18n.language === 'zh-CN' ? 'zh-CN' : i18n.language === 'ja' ? 'ja-JP' : 'en-US', {
     year: 'numeric',
     month: 'long'
   });
 
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+  const [showSettingsModal, setShowSettingsModal] = React.useState(false);
 
   const handleLogout = async () => {
     setShowLogoutModal(true);
@@ -27,12 +31,15 @@ const Header = ({ user }) => {
     <>
       <header className="header">
         <div className="header-left">
-          <h1>💰 Expense Tracker</h1>
-          <div className="subtitle">Track your monthly expenses - {currentDate}</div>
+          <h1>{t('appTitle')}</h1>
+          <div className="subtitle">{t('subtitle')} - {currentDate}</div>
         </div>
         <div className="header-right">
           <div className="user-info">
-            <span className="username">👋 {user?.username}</span>
+            <span className="username">{t('welcome', { username: user?.username })}</span>
+            <button className="settings-btn" onClick={() => setShowSettingsModal(true)} title="Settings">
+              ⚙️
+            </button>
             <button className="logout-btn" onClick={handleLogout} title="Logout">
               🚪
             </button>
@@ -45,22 +52,28 @@ const Header = ({ user }) => {
         <div className="modal-overlay">
           <div className="modal-content logout-modal">
             <div className="modal-header">
-              <h3>Confirm Logout</h3>
+              <h3>{t('confirmLogout')}</h3>
             </div>
             <div className="modal-body">
-              <p>Are you sure you want to logout?</p>
+              <p>{t('logoutMessage')}</p>
             </div>
             <div className="modal-actions">
               <button className="secondary-button" onClick={cancelLogout}>
-                Cancel
+                {t('cancel')}
               </button>
               <button className="primary-button logout-confirm" onClick={confirmLogout}>
-                Logout
+                {t('logout')}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={showSettingsModal} 
+        onClose={() => setShowSettingsModal(false)} 
+      />
     </>
   );
 };

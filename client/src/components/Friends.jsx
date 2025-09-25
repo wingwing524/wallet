@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import authService from '../services/authService';
 
 const Friends = () => {
+  const { t } = useTranslation();
   const [friends, setFriends] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,10 +53,10 @@ const Friends = () => {
         );
         setFriends(friendsWithStats);
       } else {
-        setError(friendsResponse.error || 'Failed to load friends');
+        setError(friendsResponse.error || t('error'));
       }
     } catch (err) {
-      setError('Failed to load friends');
+      setError(t('error'));
     } finally {
       setLoading(false);
     }
@@ -143,7 +145,7 @@ const Friends = () => {
     return (
       <div className="friends-container">
         <div className="loading-spinner"></div>
-        <p>Loading friends...</p>
+        <p>{t('loading')}</p>
       </div>
     );
   }
@@ -159,8 +161,8 @@ const Friends = () => {
   return (
     <div className="friends-container">
       <div className="friends-header">
-        <h2>Friends</h2>
-        <button className="primary-button" onClick={openFindModal}>Find Friends</button>
+        <h2>{t('friendsTitle')}</h2>
+        <button className="primary-button" onClick={openFindModal}>{t('findFriends')}</button>
       </div>
 
       <div className="friends-tabs">
@@ -168,13 +170,13 @@ const Friends = () => {
           className={`tab-button ${activeTab === 'friends' ? 'active' : ''}`}
           onClick={() => setActiveTab('friends')}
         >
-          Friends ({friends.length})
+          {t('friends')} ({friends.length})
         </button>
         <button 
           className={`tab-button ${activeTab === 'requests' ? 'active' : ''}`}
           onClick={() => setActiveTab('requests')}
         >
-          Requests ({pendingRequests.length})
+          {t('requests')} ({pendingRequests.length})
         </button>
       </div>
 
@@ -182,9 +184,9 @@ const Friends = () => {
         friends.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">👥</div>
-            <h3>No Friends Yet</h3>
+            <h3>{t('noExpenses')}</h3>
             <p>Add friends to compare spending and motivate each other!</p>
-            <button className="primary-button" onClick={openFindModal}>Find Friends</button>
+            <button className="primary-button" onClick={openFindModal}>{t('findFriends')}</button>
           </div>
         ) : (
           <div className="friends-list">
@@ -202,13 +204,13 @@ const Friends = () => {
                 
                 <div className="friend-stats">
                   <div className="stat-item">
-                    <span className="stat-label">This Month</span>
+                    <span className="stat-label">{t('thisMonth')}</span>
                     <span className="stat-value">
                       ${friend.stats.monthlySpent?.toFixed(2) || '0.00'}
                     </span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-label">Total</span>
+                    <span className="stat-label">{t('totalSpent')}</span>
                     <span className="stat-value">
                       ${friend.stats.totalSpent?.toFixed(2) || '0.00'}
                     </span>
@@ -239,13 +241,13 @@ const Friends = () => {
                     className="primary-button btn-sm"
                     onClick={() => respondToRequest(request.friendship_id, 'accept')}
                   >
-                    Accept
+                    {t('accept')}
                   </button>
                   <button
                     className="secondary-button btn-sm"
                     onClick={() => respondToRequest(request.friendship_id, 'reject')}
                   >
-                    Reject
+                    {t('reject')}
                   </button>
                 </div>
               </div>
@@ -262,7 +264,7 @@ const Friends = () => {
 
       <div className="friends-actions">
         <button className="secondary-button" onClick={loadFriends}>
-          🔄 Refresh
+          🔄 {t('loading')}
         </button>
       </div>
 
@@ -271,14 +273,14 @@ const Friends = () => {
         <div className="modal-overlay">
           <div className="modal-content find-friends-modal">
             <div className="modal-header">
-              <h3>Find Friends</h3>
+              <h3>{t('findFriends')}</h3>
               <button className="modal-close" onClick={closeFindModal}>✕</button>
             </div>
             <div className="modal-body">
               <div className="search-container">
                 <input
                   type="text"
-                  placeholder="Search by username or email..."
+                  placeholder={t('searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -286,7 +288,7 @@ const Friends = () => {
                   }}
                   className="search-input"
                 />
-                {searchLoading && <div className="search-loading">Searching...</div>}
+                {searchLoading && <div className="search-loading">{t('loading')}</div>}
               </div>
               
               <div className="search-results">
@@ -307,12 +309,12 @@ const Friends = () => {
                         onClick={() => !user.requestSent && sendFriendRequest(user.id)}
                         disabled={user.requestSent}
                       >
-                        {user.requestSent ? '✓ Sent' : '+ Add'}
+                        {user.requestSent ? `✓ ${t('requestSent')}` : `+ ${t('sendRequest')}`}
                       </button>
                     </div>
                   ))
                 ) : searchQuery && !searchLoading ? (
-                  <div className="no-results">No users found</div>
+                  <div className="no-results">{t('noSearchResults')}</div>
                 ) : null}
               </div>
             </div>

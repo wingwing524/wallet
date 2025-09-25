@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import SearchInput from './SearchInput';
 import { SkeletonExpenseItem, LoadingSpinner } from './LoadingComponents';
 import { hapticFeedback, pullToRefresh, swipeGestures, searchUtils } from '../utils/mobileUtils';
 
 const ExpenseList = ({ expenses, loading, onEdit, onDelete, onRefresh }) => {
+  const { t, i18n } = useTranslation();
   const [filter, setFilter] = useState({
     category: '',
     month: '',
@@ -16,10 +18,12 @@ const ExpenseList = ({ expenses, loading, onEdit, onDelete, onRefresh }) => {
   const expenseRefs = useRef({});
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    const locale = i18n.language === 'zh-TW' ? 'zh-TW' : i18n.language === 'zh-CN' ? 'zh-CN' : i18n.language === 'ja' ? 'ja-JP' : 'en-US';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+      currency: 'HKD',
+      currencyDisplay: 'symbol'
+    }).format(amount).replace('HK$', '$');
   };
 
   // Setup pull-to-refresh

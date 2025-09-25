@@ -1,11 +1,14 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const Navigation = ({ activeTab, setActiveTab }) => {
+  const { t } = useTranslation();
+  
   const tabs = [
-    { id: 'dashboard', label: '📊 Dashboard', icon: '📊' },
-    { id: 'expenses', label: '📝 Expenses', icon: '📝' },
-    { id: 'friends', label: '👥 Friends', icon: '👥' },
-    { id: 'add', label: '➕ Add New', icon: '➕' }
+    { id: 'dashboard', icon: '📊' },
+    { id: 'expenses', icon: '📝' },
+    { id: 'friends', icon: '👥' },
+    { id: 'add', icon: '➕' }
   ];
 
   return (
@@ -17,7 +20,12 @@ const Navigation = ({ activeTab, setActiveTab }) => {
           onClick={() => setActiveTab(tab.id)}
         >
           <span className="tab-icon">{tab.icon}</span>
-          <span className="tab-label">{tab.label.split(' ')[1]}</span>
+          <span className="tab-label">
+            {tab.id === 'dashboard' && t('dashboard')}
+            {tab.id === 'expenses' && t('expenses')}
+            {tab.id === 'friends' && t('friends')}
+            {tab.id === 'add' && t('addExpense')}
+          </span>
         </button>
       ))}
     </nav>
