@@ -5,37 +5,52 @@ if (process.env.NODE_ENV !== 'production') {
 
 const { Pool } = require('pg');
 
-// Database configuration
-const isDevelopment = process.env.NODE_ENV !== 'production';
+// Debug: Log available environment variables
+console.log('🔍 Environment check:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log('PGHOST:', process.env.PGHOST);
+console.log('PGPORT:', process.env.PGPORT);
+console.log('PGDATABASE:', process.env.PGDATABASE);
 
-// Construct connection string if DATABASE_URL is not available
-let connectionString = process.env.DATABASE_URL;
+let pool;
 
-if (!connectionString && process.env.PGHOST && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE) {
-  connectionString = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT || 5432}/${process.env.PGDATABASE}`;
+try {
+  // Check if we have DATABASE_URL (Railway should provide this)
+  if (process.env.DATABASE_URL) {
+    console.log('✅ Using DATABASE_URL connection');
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+  } 
+  // Fallback to individual environment variables
+  else if (process.env.PGHOST && process.env.PGPORT && process.env.PGDATABASE) {
+    console.log('✅ Using individual PG environment variables');
+    pool = new Pool({
+      host: process.env.PGHOST,
+      port: process.env.PGPORT,
+      database: process.env.PGDATABASE,
+      user: process.env.PGUSER,
+      password: process.env.PGPASSWORD,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+  } 
+  // Last resort: use default local connection for development
+  else {
+    console.log('⚠️  No database environment variables found, using defaults');
+    pool = new Pool({
+      host: 'localhost',
+      port: 5432,
+      database: 'expense_tracker',
+      user: 'postgres',
+      password: 'password'
+    });
+  }
+} catch (error) {
+  console.error('❌ Error creating database pool:', error);
+  throw error;
 }
-
-if (!connectionString) {
-  throw new Error('Database connection string not found. Please set DATABASE_URL or individual PGHOST, PGUSER, PGPASSWORD, PGDATABASE environment variables.');
-}
-
-const dbConfig = {
-  connectionString,
-  
-  // SSL configuration for Railway
-  ssl: process.env.NODE_ENV === 'production' ? {
-    require: true,
-    rejectUnauthorized: false
-  } : false,
-  
-  // Connection pool settings
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-};
-
-// Create the connection pool
-const pool = new Pool(dbConfig);
 
 // Handle pool errors
 pool.on('error', (err) => {
@@ -44,14 +59,14 @@ pool.on('error', (err) => {
 });
 
 // Test connection
-pool.connect()
-  .then(client => {
-    console.log('🐘 PostgreSQL connected successfully');
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('❌ Database connection test failed:', err.message);
+  } else {
+    console.log('✅ Database connection test successful');
     console.log(`📍 Connected to: ${process.env.PGHOST || 'localhost'}:${process.env.PGPORT || 5432}`);
-    client.release();
-  })
-  .catch(err => {
-    console.error('❌ PostgreSQL connection failed:', err.message);
-  });
+    release();
+  }
+});
 
 module.exports = pool;

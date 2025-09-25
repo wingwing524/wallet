@@ -11,16 +11,31 @@ const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const ExpenseDatabase = require('./database-postgres');
-const { createToken, authenticateToken, optionalAuth, authLimiter, apiLimiter } = require('./auth');
+const { createToken, authenticateToken, optionalAuth, authLimiter, apiLimiter } = require('./auth');// Start server
+async function startServer() {
+  console.log('🚀 Starting expense tracker server...');
+  
+  const dbInitialized = await initializeDatabase();
+  
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`📱 Optimized for iPhone 15 Pro`);
+    console.log(`📊 Database status: ${dbInitialized ? 'Connected' : 'Disconnected'}`);
+    
+    if (!dbInitialized) {
+      console.log('⚠️  Server started without database. Check Railway PostgreSQL service connection.');
+    }
+  });
+}
 
-const app = express();
+startServer().catch(console.error); express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? process.env.CLIENT_URL || true 
-    : 'http://localhost:3000',
+    ? [process.env.CLIENT_URL, /\.railway\.app$/].filter(Boolean)
+    : ['http://localhost:3000'],
   credentials: true
 }));
 app.use(bodyParser.json());
@@ -33,25 +48,49 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/build')));
 }
 
-// Initialize database
+// Initialize database with retry logic
 let db;
-async function initializeDatabase() {
-  try {
-    db = new ExpenseDatabase();
-    await db.init();
-    
-    // Create seed data if it's the first run
-    if (process.env.NODE_ENV !== 'production') {
-      await db.createSeedData();
+async function initializeDatabase(retries = 5) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      console.log(`🔄 Database initialization attempt ${i + 1}/${retries}`);
+      db = new ExpenseDatabase();
+      await db.init();
+      
+      // Create seed data if it's the first run
+      if (process.env.NODE_ENV !== 'production') {
+        await db.createSeedData();
+      }
+      console.log('✅ Database initialized successfully');
+      return true;
+    } catch (error) {
+      console.error(`❌ Database initialization failed (attempt ${i + 1}):`, error.message);
+      if (i < retries - 1) {
+        console.log(`⏳ Waiting 5 seconds before retry...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
     }
-  } catch (error) {
-    console.error('Failed to initialize database:', error);
-    process.exit(1);
   }
+  console.error('❌ Failed to initialize database after all retries');
+  return false;
 }
 
-// Initialize database before starting server
-initializeDatabase();
+// Health check endpoint (should work even if DB is down)
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    database: db ? 'connected' : 'disconnected'
+  });
+});
+
+// API Routes middleware (only if database is available)
+app.use('/api/*', (req, res, next) => {
+  if (!db) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+  next();
+});
 
 // Categories for expenses
 const categories = [
