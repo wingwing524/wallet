@@ -16,36 +16,42 @@ console.log('PGDATABASE:', process.env.PGDATABASE);
 let pool;
 
 try {
-  // For Railway, prioritize individual variables over DATABASE_URL
-  if (process.env.PGHOST && process.env.PGPORT && process.env.PGDATABASE) {
+  // Check if we have DATABASE_URL first (Railway preferred method)
+  if (process.env.DATABASE_URL) {
+    console.log('✅ Using DATABASE_URL connection');
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }, // Railway always needs SSL
+      connectionTimeoutMillis: 15000,
+      idleTimeoutMillis: 30000,
+      max: 20,
+      // Handle connection resets
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000
+    });
+  }
+  // For Railway, use individual variables if DATABASE_URL is not available
+  else if (process.env.PGHOST && process.env.PGPORT && process.env.PGDATABASE) {
     console.log('✅ Using individual PG environment variables (Railway)');
+    const isRailway = process.env.PGHOST.includes('railway') || process.env.PGHOST.includes('rlwy');
     pool = new Pool({
       host: process.env.PGHOST,
       port: parseInt(process.env.PGPORT),
       database: process.env.PGDATABASE,
       user: process.env.PGUSER,
       password: process.env.PGPASSWORD,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-      // Add connection timeout settings
-      connectionTimeoutMillis: 5000,
+      ssl: isRailway ? { rejectUnauthorized: false } : false, // SSL for Railway
+      connectionTimeoutMillis: 15000,
       idleTimeoutMillis: 30000,
-      max: 10
+      max: 20,
+      // Handle connection resets
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000
     });
   }
-  // Check if we have DATABASE_URL (fallback)
-  else if (process.env.DATABASE_URL) {
-    console.log('✅ Using DATABASE_URL connection');
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-      connectionTimeoutMillis: 5000,
-      idleTimeoutMillis: 30000,
-      max: 10
-    });
-  } 
   // Last resort: use default local connection for development
   else {
-    console.log('⚠️  No database environment variables found, using defaults');
+    console.log('⚠️  No database environment variables found, using local defaults');
     pool = new Pool({
       host: 'localhost',
       port: 5432,

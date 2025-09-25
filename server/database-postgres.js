@@ -6,8 +6,27 @@ class ExpenseDatabase {
     this.pool = pool;
   }
 
+  async testConnection() {
+    let client;
+    try {
+      console.log('🔧 Testing database connection...');
+      client = await this.pool.connect();
+      const result = await client.query('SELECT NOW() as current_time');
+      console.log('✅ Database connection test successful:', result.rows[0].current_time);
+      return true;
+    } catch (error) {
+      console.error('❌ Database connection test failed:', error.message);
+      throw error;
+    } finally {
+      if (client) client.release();
+    }
+  }
+
   async init() {
     try {
+      // Test connection first
+      await this.testConnection();
+      
       await this.createTables();
       console.log('📊 PostgreSQL Database initialized successfully');
     } catch (error) {
