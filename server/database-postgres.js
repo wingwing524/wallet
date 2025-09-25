@@ -4,7 +4,6 @@ const { v4: uuidv4 } = require('uuid');
 class ExpenseDatabase {
   constructor() {
     this.pool = pool;
-    this.init();
   }
 
   async init() {
