@@ -1,3 +1,6 @@
+// Load environment variables
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -5,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
-const ExpenseDatabase = require('./database');
+const ExpenseDatabase = require('./database-postgres');
 const { createToken, authenticateToken, optionalAuth, authLimiter, apiLimiter } = require('./auth');
 
 const app = express();
@@ -29,12 +32,24 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Initialize database
-const db = new ExpenseDatabase();
-
-// Create seed data if it's the first run
-if (process.env.NODE_ENV !== 'production') {
-  db.createSeedData();
+let db;
+async function initializeDatabase() {
+  try {
+    db = new ExpenseDatabase();
+    await db.init();
+    
+    // Create seed data if it's the first run
+    if (process.env.NODE_ENV !== 'production') {
+      await db.createSeedData();
+    }
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    process.exit(1);
+  }
 }
+
+// Initialize database before starting server
+initializeDatabase();
 
 // Categories for expenses
 const categories = [
@@ -81,7 +96,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
       display_name: (displayName || username).trim()
     };
 
-    const user = db.createUser(newUser);
+    const user = await db.createUser(newUser);
     const token = createToken(user.id);
 
     res.status(201).json({
@@ -115,7 +130,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
     }
 
     // Find user
-    const user = db.getUserByLogin(identifier.toLowerCase().trim());
+    const user = await db.getUserByLogin(identifier.toLowerCase().trim());
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -129,7 +144,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
     }
 
     // Update last login
-    db.updateLastLogin(user.id);
+    await db.updateLastLogin(user.id);
 
     // Create token
     const token = createToken(user.id);
@@ -156,7 +171,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 // Get current user profile
 app.get('/api/auth/profile', authenticateToken, async (req, res) => {
   try {
-    const user = db.getUserById(req.userId);
+    const user = await db.getUserById(req.userId);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -196,9 +211,9 @@ app.get('/api/expenses', authenticateToken, async (req, res) => {
 
     // Handle search query
     if (search) {
-      expenses = db.searchExpenses(search, req.userId);
+      expenses = await db.searchExpenses(search, req.userId);
     } else {
-      expenses = db.getAllExpenses(req.userId);
+      expenses = await db.getAllExpenses(req.userId);
     }
 
     // Filter by month and year if provided
@@ -227,7 +242,7 @@ app.get('/api/expenses', authenticateToken, async (req, res) => {
 // Get expense by ID (user-specific)
 app.get('/api/expenses/:id', authenticateToken, async (req, res) => {
   try {
-    const expenses = db.getAllExpenses(req.userId);
+    const expenses = await db.getAllExpenses(req.userId);
     const expense = expenses.find(e => e.id === req.params.id);
     if (!expense) {
       return res.status(404).json({ error: 'Expense not found' });
@@ -260,7 +275,7 @@ app.post('/api/expenses', authenticateToken, async (req, res) => {
       description: description ? description.trim() : ''
     };
 
-    const savedExpense = db.addExpense(newExpense, req.userId);
+    const savedExpense = await db.addExpense(newExpense, req.userId);
     res.status(201).json(savedExpense);
   } catch (error) {
     console.error('Error creating expense:', error);
@@ -288,7 +303,7 @@ app.put('/api/expenses/:id', authenticateToken, async (req, res) => {
       description: description ? description.trim() : ''
     };
 
-    const savedExpense = db.updateExpense(req.params.id, updatedExpense, req.userId);
+    const savedExpense = await db.updateExpense(req.params.id, updatedExpense, req.userId);
     res.json(savedExpense);
   } catch (error) {
     if (error.message === 'Expense not found') {
@@ -302,7 +317,7 @@ app.put('/api/expenses/:id', authenticateToken, async (req, res) => {
 // Delete expense (user-specific)
 app.delete('/api/expenses/:id', authenticateToken, async (req, res) => {
   try {
-    const result = db.deleteExpense(req.params.id, req.userId);
+    const result = await db.deleteExpense(req.params.id, req.userId);
     res.json({ message: 'Expense deleted successfully' });
   } catch (error) {
     if (error.message === 'Expense not found') {
@@ -322,7 +337,7 @@ app.get('/api/categories', (req, res) => {
 app.get('/api/summary/:year/:month', authenticateToken, async (req, res) => {
   try {
     const { year, month } = req.params;
-    const expenses = db.getAllExpenses(req.userId);
+    const expenses = await db.getAllExpenses(req.userId);
     
     const monthlyExpenses = expenses.filter(expense => {
       const expenseDate = new Date(expense.date);
@@ -360,7 +375,7 @@ app.get('/api/users/search', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Search query must be at least 2 characters' });
     }
 
-    const users = db.searchUsers(q.trim(), req.userId);
+    const users = await db.searchUsers(q.trim(), req.userId);
     res.json(users);
   } catch (error) {
     console.error('Error searching users:', error);
@@ -377,7 +392,7 @@ app.post('/api/friends/request', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'User ID is required' });
     }
 
-    const result = db.sendFriendRequest(req.userId, userId);
+    const result = await db.sendFriendRequest(req.userId, userId);
     res.status(201).json({ message: 'Friend request sent', ...result });
   } catch (error) {
     if (error.message.includes('already exists') || error.message.includes('not found') || error.message.includes('yourself')) {
@@ -397,7 +412,7 @@ app.post('/api/friends/respond', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Friendship ID and action are required' });
     }
 
-    const result = db.respondToFriendRequest(friendshipId, req.userId, action);
+    const result = await db.respondToFriendRequest(friendshipId, req.userId, action);
     res.json({ message: `Friend request ${action}ed`, ...result });
   } catch (error) {
     if (error.message.includes('not found') || error.message.includes('Invalid')) {
@@ -411,7 +426,7 @@ app.post('/api/friends/respond', authenticateToken, async (req, res) => {
 // Get friends list
 app.get('/api/friends', authenticateToken, async (req, res) => {
   try {
-    const friends = db.getFriends(req.userId);
+    const friends = await db.getFriends(req.userId);
     res.json(friends);
   } catch (error) {
     console.error('Error fetching friends:', error);
@@ -422,7 +437,7 @@ app.get('/api/friends', authenticateToken, async (req, res) => {
 // Get pending friend requests
 app.get('/api/friends/pending', authenticateToken, async (req, res) => {
   try {
-    const requests = db.getPendingFriendRequests(req.userId);
+    const requests = await db.getPendingFriendRequests(req.userId);
     res.json(requests);
   } catch (error) {
     console.error('Error fetching pending requests:', error);
@@ -434,7 +449,7 @@ app.get('/api/friends/pending', authenticateToken, async (req, res) => {
 app.get('/api/friends/:friendId/stats', authenticateToken, async (req, res) => {
   try {
     const { friendId } = req.params;
-    const stats = db.getFriendStats(friendId, req.userId);
+    const stats = await db.getFriendStats(friendId, req.userId);
     res.json(stats);
   } catch (error) {
     if (error.message.includes('Not friends')) {
@@ -449,7 +464,7 @@ app.get('/api/friends/:friendId/stats', authenticateToken, async (req, res) => {
 app.get('/api/monthly-data', authenticateToken, async (req, res) => {
   try {
     // For now, we'll calculate this from user's expenses
-    const expenses = db.getAllExpenses(req.userId);
+    const expenses = await db.getAllExpenses(req.userId);
     const monthlyData = expenses.reduce((acc, expense) => {
       const month = expense.date.substring(0, 7); // YYYY-MM
       if (!acc[month]) {
@@ -471,7 +486,7 @@ app.get('/api/monthly-data', authenticateToken, async (req, res) => {
 app.get('/api/category-breakdown', authenticateToken, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    const expenses = db.getAllExpenses(req.userId);
+    const expenses = await db.getAllExpenses(req.userId);
     
     let filteredExpenses = expenses;
     if (startDate && endDate) {
@@ -499,7 +514,7 @@ app.get('/api/category-breakdown', authenticateToken, async (req, res) => {
 // Get user statistics
 app.get('/api/stats', authenticateToken, async (req, res) => {
   try {
-    const expenses = db.getAllExpenses(req.userId);
+    const expenses = await db.getAllExpenses(req.userId);
     const totalExpenses = expenses.length;
     const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
     const averageAmount = totalExpenses > 0 ? totalAmount / totalExpenses : 0;
@@ -532,20 +547,30 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Graceful shutdown
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\n🛑 Shutting down server...');
-  db.close();
+  if (db) await db.close();
   process.exit(0);
 });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('\n🛑 Server terminated...');
-  db.close();
+  if (db) await db.close();
   process.exit(0);
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📱 Optimized for iPhone 15 Pro`);
-  console.log(`💾 Database: SQLite with persistent storage`);
+// Start server after database initialization
+async function startServer() {
+  await initializeDatabase();
+  
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📱 Optimized for iPhone 15 Pro`);
+    console.log(`� Database: PostgreSQL with persistent storage`);
+  });
+}
+
+startServer().catch(error => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
