@@ -27,72 +27,12 @@ const AddExpense = ({ onAdd }) => {
     }
   };
 
-  // Safe math expression evaluator
-  const evaluateExpression = (expr) => {
-    try {
-      // Remove any whitespace
-      const cleanExpr = expr.replace(/\s/g, '');
-      
-      // Only allow numbers, +, -, *, /, ., (, )
-      if (!/^[0-9+\-*/.()]+$/.test(cleanExpr)) {
-        return null;
-      }
-      
-      // Prevent dangerous expressions
-      if (cleanExpr.includes('**') || cleanExpr.includes('++') || cleanExpr.includes('--')) {
-        return null;
-      }
-      
-      // Use Function constructor for safe evaluation (safer than eval)
-      const result = new Function('return ' + cleanExpr)();
-      
-      // Check if result is a valid number
-      if (typeof result === 'number' && !isNaN(result) && isFinite(result) && result >= 0) {
-        return result;
-      }
-      
-      return null;
-    } catch (error) {
-      return null;
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    // Handle formula calculation for amount field
-    if (name === 'amount') {
-      // Check if the input contains mathematical operators
-      const hasOperators = /[+\-*/]/.test(value);
-      
-      if (hasOperators) {
-        const calculatedValue = evaluateExpression(value);
-        if (calculatedValue !== null) {
-          // Auto-calculate when user types an expression
-          setFormData(prev => ({
-            ...prev,
-            [name]: calculatedValue.toString()
-          }));
-        } else {
-          // Keep the expression if it's invalid (let user continue typing)
-          setFormData(prev => ({
-            ...prev,
-            [name]: value
-          }));
-        }
-      } else {
-        // No operators, just regular number input
-        setFormData(prev => ({
-          ...prev,
-          [name]: value
-        }));
-      }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -106,17 +46,7 @@ const AddExpense = ({ onAdd }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Validate amount - check if it's a number or valid expression
-    let finalAmount = formData.amount;
-    const hasOperators = /[+\-*/]/.test(formData.amount);
-    
-    if (hasOperators) {
-      finalAmount = evaluateExpression(formData.amount);
-    } else {
-      finalAmount = parseFloat(formData.amount);
-    }
-    
-    if (!formData.amount || isNaN(finalAmount) || finalAmount <= 0) {
+    if (!formData.amount || isNaN(formData.amount) || parseFloat(formData.amount) <= 0) {
       newErrors.amount = 'Please enter a valid amount';
     }
 
@@ -137,19 +67,9 @@ const AddExpense = ({ onAdd }) => {
 
     setLoading(true);
     try {
-      // Calculate final amount if it's an expression
-      let finalAmount = formData.amount;
-      const hasOperators = /[+\-*/]/.test(formData.amount);
-      
-      if (hasOperators) {
-        finalAmount = evaluateExpression(formData.amount);
-      } else {
-        finalAmount = parseFloat(formData.amount);
-      }
-      
       await onAdd({
         ...formData,
-        amount: finalAmount
+        amount: parseFloat(formData.amount)
       });
       
       // Reset form
@@ -188,7 +108,7 @@ const AddExpense = ({ onAdd }) => {
               className={`form-input ${errors.amount ? 'error' : ''}`}
               value={formData.amount}
               onChange={handleChange}
-              placeholder="0.00 or 30+15"
+              placeholder="0.00"
               step="0.01"
               min="0"
             />
