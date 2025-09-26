@@ -240,14 +240,14 @@ class ExpenseDatabase {
       ];
       
       const result = await client.query(query, values);
-      const expense = result.rows[0];
+      const newExpense = result.rows[0];
       
       // Convert amount from string to number for consistency
-      if (expense) {
-        expense.amount = parseFloat(expense.amount) || 0;
+      if (newExpense) {
+        newExpense.amount = parseFloat(newExpense.amount) || 0;
       }
       
-      return expense;
+      return newExpense;
     } catch (error) {
       console.error('❌ Failed to add expense:', error);
       throw error;
@@ -283,14 +283,14 @@ class ExpenseDatabase {
         throw new Error('Expense not found');
       }
       
-      const expense = result.rows[0];
+      const updatedExpense = result.rows[0];
       
       // Convert amount from string to number for consistency
-      if (expense) {
-        expense.amount = parseFloat(expense.amount) || 0;
+      if (updatedExpense) {
+        updatedExpense.amount = parseFloat(updatedExpense.amount) || 0;
       }
       
-      return expense;
+      return updatedExpense;
     } catch (error) {
       console.error('❌ Failed to update expense:', error);
       throw error;
