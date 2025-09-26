@@ -55,17 +55,9 @@ async function initializeDatabase(retries = 5) {
       return true;
     } catch (error) {
       console.error(`❌ Database initialization failed (attempt ${i + 1}):`, error.message);
-      
-      // Handle specific Railway connection issues
-      if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
-        console.log('🔧 Connection issue detected, using exponential backoff...');
-      }
-      
       if (i < retries - 1) {
-        // Exponential backoff: 2s, 4s, 8s, 16s
-        const waitTime = Math.min(2000 * Math.pow(2, i), 16000);
-        console.log(`⏳ Waiting ${waitTime/1000} seconds before retry...`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        console.log(`⏳ Waiting 5 seconds before retry...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
       }
     }
   }
