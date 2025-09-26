@@ -6,19 +6,48 @@ class ExpenseDatabase {
     this.pool = pool;
   }
 
-  async testConnection() {
+  async testConnection(retries = 3) {
     let client;
-    try {
-      console.log('🔧 Testing database connection...');
-      client = await this.pool.connect();
-      const result = await client.query('SELECT NOW() as current_time');
-      console.log('✅ Database connection test successful:', result.rows[0].current_time);
-      return true;
-    } catch (error) {
-      console.error('❌ Database connection test failed:', error.message);
-      throw error;
-    } finally {
-      if (client) client.release();
+    for (let i = 0; i < retries; i++) {
+      try {
+        console.log(`🔧 Testing database connection... (attempt ${i + 1}/${retries})`);
+        client = await this.pool.connect();
+        const result = await client.query('SELECT NOW() as current_time');
+        console.log('✅ Database connection test successful:', result.rows[0].current_time);
+        return true;
+      } catch (error) {
+        console.error(`❌ Database connection test failed (attempt ${i + 1}):`, error.message);
+        
+        if (client) {
+          try {
+            client.release();
+          } catch (releaseError) {
+            console.error('Error releasing client:', releaseError.message);
+          }
+          client = null;
+        }
+        
+        // If it's a connection reset and we have retries left, wait and try again
+        if ((error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') && i < retries - 1) {
+          const waitTime = (i + 1) * 2000; // 2s, 4s, 6s
+          console.log(`⏳ Waiting ${waitTime/1000} seconds before retry...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          continue;
+        }
+        
+        // If this is the last retry or a different error, throw it
+        if (i === retries - 1) {
+          throw error;
+        }
+      } finally {
+        if (client) {
+          try {
+            client.release();
+          } catch (releaseError) {
+            console.error('Error releasing client in finally:', releaseError.message);
+          }
+        }
+      }
     }
   }
 

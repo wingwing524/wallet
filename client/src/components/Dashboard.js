@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { useTranslation } from 'react-i18next';
 
 const Dashboard = ({ expenses, loading }) => {
-  const { t, i18n } = useTranslation();
   const [monthlyData, setMonthlyData] = useState({
     total: 0,
     count: 0,
@@ -106,10 +104,10 @@ const Dashboard = ({ expenses, loading }) => {
           />
         </svg>
         <div className="budget-progress-content">
-          <div className="budget-spent">{formatCurrency(spentAmount)}</div>
-          <div className="budget-total">{t('of')} {formatCurrency(budgetAmount)}</div>
+          <div className="budget-spent">${spentAmount.toFixed(2)}</div>
+          <div className="budget-total">of ${budgetAmount.toFixed(2)}</div>
           <div className="budget-remaining">
-            {formatCurrency(Math.max(0, budgetAmount - spentAmount))} {t('left')}
+            ${Math.max(0, budgetAmount - spentAmount).toFixed(2)} left
           </div>
         </div>
       </div>
@@ -119,12 +117,10 @@ const Dashboard = ({ expenses, loading }) => {
   const formatCurrency = (amount) => {
     // Ensure amount is a valid number
     const numericAmount = Number(amount) || 0;
-    const locale = i18n.language === 'zh-TW' ? 'zh-TW' : i18n.language === 'zh-CN' ? 'zh-CN' : i18n.language === 'ja' ? 'ja-JP' : 'en-US';
-    return new Intl.NumberFormat(locale, {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'HKD',
-      currencyDisplay: 'symbol'
-    }).format(numericAmount).replace('HK$', '$');
+      currency: 'USD'
+    }).format(numericAmount);
   };
 
   const getRecentExpenses = () => {
@@ -137,7 +133,6 @@ const Dashboard = ({ expenses, loading }) => {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        <p>{t('loading')}</p>
       </div>
     );
   }
@@ -147,11 +142,11 @@ const Dashboard = ({ expenses, loading }) => {
       {/* Budget Progress */}
       <div className="card budget-card">
         <div className="card-header">
-          <h2 className="card-title">💰 {t('monthlyBudget')}</h2>
+          <h2 className="card-title">💰 Monthly Budget</h2>
           <button 
             className="budget-edit-btn"
             onClick={() => {
-              const newBudget = prompt(t('setBudgetPrompt'), monthlyBudget);
+              const newBudget = prompt('Set your monthly budget:', monthlyBudget);
               if (newBudget && !isNaN(newBudget) && newBudget > 0) {
                 updateBudget(parseFloat(newBudget));
               }
@@ -165,12 +160,12 @@ const Dashboard = ({ expenses, loading }) => {
           <div className="budget-insights">
             {(monthlyData.total || 0) > monthlyBudget && (
               <div className="budget-warning">
-                {t('budgetExceeded')} {formatCurrency((monthlyData.total || 0) - monthlyBudget)}
+                ⚠️ You've exceeded your budget by ${((monthlyData.total || 0) - monthlyBudget).toFixed(2)}
               </div>
             )}
             {(monthlyData.total || 0) <= monthlyBudget * 0.8 && (
               <div className="budget-success">
-                {t('budgetOnTrack')}
+                ✅ Great job! You're staying within budget
               </div>
             )}
           </div>
@@ -181,11 +176,11 @@ const Dashboard = ({ expenses, loading }) => {
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-value">{formatCurrency(monthlyData.total)}</div>
-          <div className="stat-label">{t('thisMonth')}</div>
+          <div className="stat-label">This Month</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">{monthlyData.count}</div>
-          <div className="stat-label">{t('transactions')}</div>
+          <div className="stat-label">Transactions</div>
         </div>
       </div>
 
@@ -193,14 +188,14 @@ const Dashboard = ({ expenses, loading }) => {
       {monthlyData.topCategories.length > 0 && (
         <div className="card">
           <div className="card-header">
-            <h2 className="card-title">{t('topCategories')}</h2>
+            <h2 className="card-title">📊 Top Categories This Month</h2>
           </div>
           <div className="category-list">
             {monthlyData.topCategories.map((item, index) => (
               <div key={item.category} className="category-item">
                 <div className="category-info">
                   <div className="category-name">
-                    #{index + 1} {t(item.category.toLowerCase())}
+                    #{index + 1} {item.category}
                   </div>
                   <div className="category-bar">
                     <div 
@@ -224,7 +219,7 @@ const Dashboard = ({ expenses, loading }) => {
       {/* Recent Expenses */}
       <div className="card">
         <div className="card-header">
-          <h2 className="card-title">{t('recentExpenses')}</h2>
+          <h2 className="card-title">🕒 Recent Expenses</h2>
         </div>
         {getRecentExpenses().length > 0 ? (
           <div className="recent-expenses">
@@ -233,7 +228,7 @@ const Dashboard = ({ expenses, loading }) => {
                 <div className="expense-info">
                   <div className="expense-title">{expense.title}</div>
                   <div className="expense-meta">
-                    <span className="expense-category">{t(expense.category.toLowerCase())}</span>
+                    <span className="expense-category">{expense.category}</span>
                     <span className="expense-date">
                       {format(new Date(expense.date), 'MMM dd')}
                     </span>
@@ -248,7 +243,7 @@ const Dashboard = ({ expenses, loading }) => {
         ) : (
           <div className="empty-state">
             <div className="empty-state-icon">📝</div>
-            <p>{t('noExpenses')}</p>
+            <p>No expenses yet. Start tracking your expenses!</p>
           </div>
         )}
       </div>
@@ -256,11 +251,11 @@ const Dashboard = ({ expenses, loading }) => {
       {/* Quick Stats */}
       <div className="card">
         <div className="card-header">
-          <h2 className="card-title">{t('quickStats')}</h2>
+          <h2 className="card-title">📈 Quick Stats</h2>
         </div>
         <div className="quick-stats">
           <div className="quick-stat">
-            <div className="quick-stat-label">{t('averagePerTransaction')}</div>
+            <div className="quick-stat-label">Average per transaction</div>
             <div className="quick-stat-value">
               {monthlyData.count > 0 
                 ? formatCurrency(monthlyData.total / monthlyData.count)
@@ -269,7 +264,7 @@ const Dashboard = ({ expenses, loading }) => {
             </div>
           </div>
           <div className="quick-stat">
-            <div className="quick-stat-label">{t('dailyAverage')}</div>
+            <div className="quick-stat-label">Daily average</div>
             <div className="quick-stat-value">
               {formatCurrency((monthlyData.total || 0) / new Date().getDate())}
             </div>

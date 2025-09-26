@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { expenseService } from '../services/expenseService';
 
 const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
-  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     title: '',
     amount: '',
@@ -59,11 +57,11 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
     const newErrors = {};
 
     if (!formData.amount || isNaN(formData.amount) || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = t('validAmountRequired');
+      newErrors.amount = 'Please enter a valid amount';
     }
 
     if (!formData.date) {
-      newErrors.date = t('dateRequired');
+      newErrors.date = 'Date is required';
     }
 
     setErrors(newErrors);
@@ -97,11 +95,11 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
   };
 
   return (
-    <div className="modal-overlay expense-modal" onClick={handleOverlayClick}>
+    <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-content">
         <div className="modal-header">
           <h2 className="modal-title">
-            {mode === 'add' ? t('addExpenseTitle') : t('editExpenseTitle')}
+            {mode === 'add' ? '➕ Add Expense' : '✏️ Edit Expense'}
           </h2>
           <button className="close-btn" onClick={onClose}>
             ✕
@@ -110,7 +108,7 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">{t('amount')} *</label>
+            <label className="form-label">Amount * ($)</label>
             <input
               type="number"
               name="amount"
@@ -126,7 +124,7 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">{t('category')}</label>
+            <label className="form-label">Category</label>
             <select
               name="category"
               className={`form-select ${errors.category ? 'error' : ''}`}
@@ -135,7 +133,7 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
             >
               {categories.map(category => (
                 <option key={category} value={category}>
-                  {t(category.toLowerCase())}
+                  {category}
                 </option>
               ))}
             </select>
@@ -143,7 +141,7 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">{t('date')} *</label>
+            <label className="form-label">Date *</label>
             <input
               type="date"
               name="date"
@@ -156,27 +154,27 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">{t('title')}</label>
+            <label className="form-label">Title (Optional)</label>
             <input
               type="text"
               name="title"
               className={`form-input ${errors.title ? 'error' : ''}`}
               value={formData.title}
               onChange={handleChange}
-              placeholder={t('titlePlaceholder')}
+              placeholder="e.g., Lunch, Gas, Shopping (leave empty for quick entry)"
               maxLength={100}
             />
             {errors.title && <div className="error-message">{errors.title}</div>}
           </div>
 
           <div className="form-group">
-            <label className="form-label">{t('description')}</label>
+            <label className="form-label">Description (Optional)</label>
             <textarea
               name="description"
               className="form-textarea"
               value={formData.description}
               onChange={handleChange}
-              placeholder={t('descriptionPlaceholder')}
+              placeholder="Additional notes about this expense..."
               rows="3"
               maxLength={500}
             />
@@ -189,7 +187,7 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
               onClick={onClose}
               disabled={loading}
             >
-              {t('cancel')}
+              Cancel
             </button>
             <button
               type="submit"
@@ -199,11 +197,11 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
               {loading ? (
                 <>
                   <div className="spinner"></div>
-                  {mode === 'add' ? t('adding') : t('saving')}
+                  {mode === 'add' ? 'Adding...' : 'Saving...'}
                 </>
               ) : (
                 <>
-                  {mode === 'add' ? t('add') : t('save')}
+                  {mode === 'add' ? '➕ Add' : '💾 Save'}
                 </>
               )}
             </button>

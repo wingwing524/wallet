@@ -22,12 +22,14 @@ try {
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false }, // Railway always needs SSL
-      connectionTimeoutMillis: 15000,
-      idleTimeoutMillis: 30000,
-      max: 20,
-      // Handle connection resets
+      connectionTimeoutMillis: 30000, // Increased timeout
+      idleTimeoutMillis: 60000,
+      max: 10, // Reduced max connections for stability
+      min: 1,
+      // Handle connection resets better
       keepAlive: true,
-      keepAliveInitialDelayMillis: 10000
+      keepAliveInitialDelayMillis: 0,
+      application_name: 'expense_tracker_app'
     });
   }
   // For Railway, use individual variables if DATABASE_URL is not available
@@ -41,12 +43,14 @@ try {
       user: process.env.PGUSER,
       password: process.env.PGPASSWORD,
       ssl: isRailway ? { rejectUnauthorized: false } : false, // SSL for Railway
-      connectionTimeoutMillis: 15000,
-      idleTimeoutMillis: 30000,
-      max: 20,
-      // Handle connection resets
+      connectionTimeoutMillis: 30000, // Increased timeout
+      idleTimeoutMillis: 60000,
+      max: 10, // Reduced max connections for stability
+      min: 1,
+      // Handle connection resets better
       keepAlive: true,
-      keepAliveInitialDelayMillis: 10000
+      keepAliveInitialDelayMillis: 0,
+      application_name: 'expense_tracker_app'
     });
   }
   // Last resort: use default local connection for development

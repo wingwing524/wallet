@@ -48,7 +48,7 @@ const optionalAuth = (req, res, next) => {
 // Rate limiting for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs (very generous for development)
+  max: 50, // limit each IP to 50 requests per windowMs (increased for development)
   message: { error: 'Too many authentication attempts, try again later' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -57,7 +57,7 @@ const authLimiter = rateLimit({
 // Rate limiting for general API
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5000, // limit each IP to 5000 requests per windowMs (very generous for development and production)
+  max: 100, // limit each IP to 100 requests per windowMs
   message: { error: 'Too many requests, try again later' },
   standardHeaders: true,
   legacyHeaders: false,

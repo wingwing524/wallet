@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { expenseService } from '../services/expenseService';
 import { hapticFeedback } from '../utils/mobileUtils';
 
 const AddExpense = ({ onAdd }) => {
-  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     title: '',
     amount: '',
@@ -49,11 +47,11 @@ const AddExpense = ({ onAdd }) => {
     const newErrors = {};
 
     if (!formData.amount || isNaN(formData.amount) || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = t('validAmountRequired');
+      newErrors.amount = 'Please enter a valid amount';
     }
 
     if (!formData.date) {
-      newErrors.date = t('dateRequired');
+      newErrors.date = 'Date is required';
     }
 
     setErrors(newErrors);
@@ -84,7 +82,7 @@ const AddExpense = ({ onAdd }) => {
       });
       
       // Show success message
-      alert(`✅ ${t('success')}!`);
+      alert('✅ Expense added successfully!');
     } catch (error) {
       console.error('Failed to add expense:', error);
     } finally {
@@ -98,12 +96,12 @@ const AddExpense = ({ onAdd }) => {
     <div className="add-expense-page">
       <div className="card">
         <div className="card-header">
-          <h2 className="card-title">{t('addExpenseTitle')}</h2>
+          <h2 className="card-title">➕ Add New Expense</h2>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">{t('amount')} *</label>
+            <label className="form-label">Amount * ($)</label>
             <input
               type="number"
               name="amount"

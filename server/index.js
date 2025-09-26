@@ -10,7 +10,7 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
-const ExpenseDatabase = require('./database-postgres');
+const DatabaseFactory = require('./database-hybrid');
 const { createToken, authenticateToken, optionalAuth, authLimiter, apiLimiter } = require('./auth');
 
 const app = express();
@@ -44,7 +44,7 @@ async function initializeDatabase(retries = 5) {
   for (let i = 0; i < retries; i++) {
     try {
       console.log(`🔄 Database initialization attempt ${i + 1}/${retries}`);
-      db = new ExpenseDatabase();
+      db = DatabaseFactory.create();
       await db.init();
       
       // Create seed data if it's the first run
