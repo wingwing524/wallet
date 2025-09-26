@@ -208,11 +208,7 @@ const Friends = () => {
                     </span>
                   </div>
                   <div className="stat-item">
-<<<<<<< HEAD
-                    <span className="stat-label">{t('totalSpentLabel')}</span>
-=======
                     <span className="stat-label">Total</span>
->>>>>>> parent of b3699c1 (update)
                     <span className="stat-value">
                       ${friend.stats.totalSpent?.toFixed(2) || '0.00'}
                     </span>

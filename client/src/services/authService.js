@@ -239,39 +239,6 @@ class AuthService {
       };
     }
   }
-
-  async searchUsers(query) {
-    try {
-      const response = await authAPI.get(`/users/search?q=${encodeURIComponent(query)}`);
-      return {
-        success: true,
-        users: response.data
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Failed to search users'
-      };
-    }
-  }
-
-  async respondToFriendRequest(friendshipId, action) {
-    try {
-      const response = await authAPI.post('/friends/respond', {
-        friendshipId,
-        action // 'accept' or 'reject'
-      });
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Failed to respond to request'
-      };
-    }
-  }
 }
 
 // Create and export singleton instance

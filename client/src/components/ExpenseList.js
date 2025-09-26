@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
 import SearchInput from './SearchInput';
 import { SkeletonExpenseItem, LoadingSpinner } from './LoadingComponents';
@@ -66,15 +66,15 @@ const ExpenseList = ({ expenses, loading, onEdit, onDelete, onRefresh }) => {
   const totalAmount = searchedExpenses.reduce((sum, expense) => sum + expense.amount, 0);
 
   // Handle swipe actions
-  const handleSwipeLeft = (expense) => {
+  const handleSwipeLeft = useCallback((expense) => {
     hapticFeedback.medium();
     onDelete(expense.id);
-  };
+  }, [onDelete]);
 
-  const handleSwipeRight = (expense) => {
+  const handleSwipeRight = useCallback((expense) => {
     hapticFeedback.light();
     onEdit(expense);
-  };
+  }, [onEdit]);
 
   // Setup swipe gestures for expense items
   useEffect(() => {
@@ -97,7 +97,7 @@ const ExpenseList = ({ expenses, loading, onEdit, onDelete, onRefresh }) => {
     return () => {
       cleanupFunctions.forEach(cleanup => cleanup());
     };
-  }, [searchedExpenses]);
+  }, [searchedExpenses, handleSwipeLeft, handleSwipeRight]);
 
   const categories = [...new Set(expenses.map(expense => expense.category))];
   const months = [

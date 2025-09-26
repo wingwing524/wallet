@@ -25,7 +25,22 @@ if (process.env.NODE_ENV === 'production') {
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? [process.env.CLIENT_URL, /\.railway\.app$/].filter(Boolean)
-    : ['http://localhost:3000'],
+    : function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // Allow localhost and local network IPs
+        const allowedOrigins = [
+          /^http:\/\/localhost:\d+$/,
+          /^http:\/\/127\.0\.0\.1:\d+$/,
+          /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
+          /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,
+          /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:\d+$/
+        ];
+        
+        const isAllowed = allowedOrigins.some(pattern => pattern.test(origin));
+        callback(null, isAllowed);
+      },
   credentials: true
 }));
 app.use(bodyParser.json());
