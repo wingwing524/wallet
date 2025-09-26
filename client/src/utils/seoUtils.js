@@ -70,9 +70,11 @@ export const seoData = {
   }
 };
 
-export default {
+const seoUtils = {
   updateMetaTag,
   updateOGTag,
   setPageSEO,
   seoData
 };
+
+export default seoUtils;
