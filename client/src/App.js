@@ -11,6 +11,7 @@ import AuthProvider, { useAuth } from './components/AuthProvider';
 import AuthScreen from './components/AuthScreen';
 import ToastProvider from './components/ToastProvider';
 import { expenseService } from './services/expenseService';
+import { setPageSEO, seoData } from './utils/seoUtils';
 
 function AppContent() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -26,6 +27,20 @@ function AppContent() {
       loadExpenses();
     }
   }, [isAuthenticated, authLoading]);
+
+  // Update SEO metadata based on active tab
+  useEffect(() => {
+    const pageData = seoData[activeTab];
+    if (pageData) {
+      setPageSEO(pageData.title, pageData.description, pageData.keywords);
+    } else {
+      setPageSEO(
+        'ExpenseTracker - Smart Personal Finance Management',
+        'Track your expenses, manage budgets, and monitor spending with friends. A smart personal finance app for better money management and financial insights.',
+        'expense tracker, budget app, personal finance, money management'
+      );
+    }
+  }, [activeTab]);
 
   const loadExpenses = async () => {
     try {

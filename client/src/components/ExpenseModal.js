@@ -95,24 +95,26 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-content">
-        <div className="modal-header">
+    <div className="modal-overlay expense-modal-overlay" onClick={handleOverlayClick}>
+      <div className="modal-content expense-modal-content">
+        <div className="modal-header expense-modal-header">
           <h2 className="modal-title">
             {mode === 'add' ? '➕ Add Expense' : '✏️ Edit Expense'}
           </h2>
-          <button className="close-btn" onClick={onClose}>
+          <button className="close-btn-mobile" onClick={onClose} type="button">
             ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Amount * ($)</label>
+        <form onSubmit={handleSubmit} className="expense-form">
+          {/* Essential Fields Row */}
+          <div className="form-row-mobile">
+          <div className="form-group form-group-compact">
+            <label className="form-label">Amount *</label>
             <input
               type="number"
               name="amount"
-              className={`form-input ${errors.amount ? 'error' : ''}`}
+              className={`form-input form-input-mobile ${errors.amount ? 'error' : ''}`}
               value={formData.amount}
               onChange={handleChange}
               placeholder="0.00"
@@ -120,32 +122,43 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
               min="0"
               autoFocus
             />
-            {errors.amount && <div className="error-message">{errors.amount}</div>}
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Category</label>
-            <select
-              name="category"
-              className={`form-select ${errors.category ? 'error' : ''}`}
-              value={formData.category}
-              onChange={handleChange}
-            >
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
+            <div className="quick-amounts-mobile">
+              {[5, 10, 20, 50].map(amount => (
+                <button
+                  key={amount}
+                  type="button"
+                  className="quick-amount-btn"
+                  onClick={() => handleChange({ target: { name: 'amount', value: amount.toString() } })}
+                >
+                  ${amount}
+                </button>
               ))}
-            </select>
-            {errors.category && <div className="error-message">{errors.category}</div>}
+            </div>
+            {errors.amount && <div className="error-message">{errors.amount}</div>}
+          </div>            <div className="form-group form-group-compact">
+              <label className="form-label">Category</label>
+              <select
+                name="category"
+                className={`form-select form-input-mobile ${errors.category ? 'error' : ''}`}
+                value={formData.category}
+                onChange={handleChange}
+              >
+                {categories.map(category => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+              {errors.category && <div className="error-message">{errors.category}</div>}
+            </div>
           </div>
 
-          <div className="form-group">
+          <div className="form-group form-group-compact">
             <label className="form-label">Date *</label>
             <input
               type="date"
               name="date"
-              className={`form-input ${errors.date ? 'error' : ''}`}
+              className={`form-input form-input-mobile ${errors.date ? 'error' : ''}`}
               value={formData.date}
               onChange={handleChange}
               max={new Date().toISOString().split('T')[0]}
@@ -153,37 +166,37 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
             {errors.date && <div className="error-message">{errors.date}</div>}
           </div>
 
-          <div className="form-group">
+          <div className="form-group form-group-compact">
             <label className="form-label">Title (Optional)</label>
             <input
               type="text"
               name="title"
-              className={`form-input ${errors.title ? 'error' : ''}`}
+              className={`form-input form-input-mobile ${errors.title ? 'error' : ''}`}
               value={formData.title}
               onChange={handleChange}
-              placeholder="e.g., Lunch, Gas, Shopping (leave empty for quick entry)"
-              maxLength={100}
+              placeholder="e.g., Lunch, Gas, Shopping"
+              maxLength={50}
             />
             {errors.title && <div className="error-message">{errors.title}</div>}
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Description (Optional)</label>
+          <div className="form-group form-group-compact">
+            <label className="form-label">Notes (Optional)</label>
             <textarea
               name="description"
-              className="form-textarea"
+              className="form-textarea form-textarea-mobile"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Additional notes about this expense..."
-              rows="3"
-              maxLength={500}
+              placeholder="Additional notes..."
+              rows="2"
+              maxLength={200}
             />
           </div>
 
-          <div className="modal-actions">
+          <div className="modal-actions expense-modal-actions">
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary btn-mobile"
               onClick={onClose}
               disabled={loading}
             >
@@ -191,7 +204,7 @@ const ExpenseModal = ({ mode, expense, onSave, onClose }) => {
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn btn-primary btn-mobile"
               disabled={loading}
             >
               {loading ? (

@@ -203,7 +203,14 @@ class ExpenseDatabase {
       }
       
       const result = await client.query(query, values);
-      return result.rows;
+      
+      // Convert amount from string to number for proper calculation
+      const expenses = result.rows.map(expense => ({
+        ...expense,
+        amount: parseFloat(expense.amount) || 0
+      }));
+      
+      return expenses;
     } catch (error) {
       console.error('❌ Failed to get expenses:', error);
       throw error;
@@ -233,7 +240,14 @@ class ExpenseDatabase {
       ];
       
       const result = await client.query(query, values);
-      return result.rows[0];
+      const expense = result.rows[0];
+      
+      // Convert amount from string to number for consistency
+      if (expense) {
+        expense.amount = parseFloat(expense.amount) || 0;
+      }
+      
+      return expense;
     } catch (error) {
       console.error('❌ Failed to add expense:', error);
       throw error;
@@ -269,7 +283,14 @@ class ExpenseDatabase {
         throw new Error('Expense not found');
       }
       
-      return result.rows[0];
+      const expense = result.rows[0];
+      
+      // Convert amount from string to number for consistency
+      if (expense) {
+        expense.amount = parseFloat(expense.amount) || 0;
+      }
+      
+      return expense;
     } catch (error) {
       console.error('❌ Failed to update expense:', error);
       throw error;
@@ -367,7 +388,14 @@ class ExpenseDatabase {
       
       const searchPattern = `%${searchTerm}%`;
       const result = await client.query(query, [userId, searchPattern]);
-      return result.rows;
+      
+      // Convert amount from string to number for proper calculation
+      const expenses = result.rows.map(expense => ({
+        ...expense,
+        amount: parseFloat(expense.amount) || 0
+      }));
+      
+      return expenses;
     } catch (error) {
       console.error('❌ Failed to search expenses:', error);
       throw error;

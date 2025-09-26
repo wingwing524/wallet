@@ -4,27 +4,85 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
+    
+    <!-- SEO Meta Tags -->
+    <title>ExpenseTracker - Smart Personal Finance Management</title>
+    <meta name="description" content="Track your expenses, manage budgets, and monitor spending with friends. A smart personal finance app for better money management and financial insights." />
+    <meta name="keywords" content="expense tracker, budget app, personal finance, money management, spending tracker, financial planning, expense management" />
+    <meta name="author" content="ExpenseTracker" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://your-domain.com/" />
+    <meta property="og:title" content="ExpenseTracker - Smart Personal Finance Management" />
+    <meta property="og:description" content="Track your expenses, manage budgets, and monitor spending with friends. A smart personal finance app for better money management." />
+    <meta property="og:image" content="%PUBLIC_URL%/logo.svg" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:site_name" content="ExpenseTracker" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:title" content="ExpenseTracker - Smart Personal Finance Management" />
+    <meta property="twitter:description" content="Track your expenses, manage budgets, and monitor spending with friends. A smart personal finance app for better money management." />
+    <meta property="twitter:image" content="%PUBLIC_URL%/logo.svg" />
+    <meta property="twitter:image:alt" content="ExpenseTracker - Wallet with dollar sign and expense chart" />
+    
+    <!-- Theme and Mobile -->
+    <meta name="theme-color" content="#4CAF50" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ExpenseTracker" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="mask-icon" href="%PUBLIC_URL%/favicon.svg" color="#4CAF50" />
+    
+    <!-- Manifest -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Canonical URL (update with your actual domain) -->
+    <link rel="canonical" href="https://your-domain.com/" />
+    
+    <!-- Structured Data / JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "ExpenseTracker",
+      "description": "Track your expenses, manage budgets, and monitor spending with friends. A smart personal finance app for better money management.",
+      "applicationCategory": "Finance",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Expense Tracking",
+        "Budget Management", 
+        "Friend Spending Monitoring",
+        "Financial Insights",
+        "Category Management",
+        "Real-time Notifications"
+      ],
+      "author": {
+        "@type": "Organization",
+        "name": "ExpenseTracker"
+      }
+    }
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
