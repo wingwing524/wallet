@@ -1,5 +1,7 @@
 [build]
-command = "cd client && npm install && DISABLE_ESLINT_PLUGIN=true ESLINT_NO_DEV_ERRORS=true SKIP_PREFLIGHT_CHECK=true npm run build"
+command = "cd client && rm -rf build node_modules && npm install && DISABLE_ESLINT_PLUGIN=true ESLINT_NO_DEV_ERRORS=true SKIP_PREFLIGHT_CHECK=true npm run build"
 
 [deploy]
 startCommand = "node server/index.js"
+
+# Build timestamp: 2025-09-28

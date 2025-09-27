@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+    <style>
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .icon-preview { display: inline-block; margin: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>ExpenseTracker Icon Generator</h1>
+    <p>This page generates optimized PNG icons from the SVG logo.</p>
+    
+    <div id="icons"></div>
+    
+    <script>
+        const sizes = [16, 32, 48, 64, 96, 128, 192, 256, 512];
+        const iconsContainer = document.getElementById('icons');
+        
+        // SVG content for the expense tracker logo
+        const svgContent = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+                <circle cx="256" cy="256" r="240" fill="#4CAF50" stroke="#2E7D32" stroke-width="8"/>
+                <rect x="150" y="180" width="212" height="140" rx="15" ry="15" fill="#1B5E20" stroke="#0D4E14" stroke-width="3"/>
+                <rect x="150" y="180" width="212" height="35" rx="15" ry="15" fill="#2E7D32"/>
+                <rect x="150" y="198" width="212" height="17" fill="#2E7D32"/>
+                <g transform="translate(256, 250)">
+                    <circle cx="0" cy="0" r="35" fill="#FFFFFF" stroke="#4CAF50" stroke-width="3"/>
+                    <text x="0" y="12" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#4CAF50">$</text>
+                </g>
+                <g transform="translate(320, 200)">
+                    <line x1="0" y1="30" x2="0" y2="0" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="10" y1="30" x2="10" y2="10" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="20" y1="30" x2="20" y2="5" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="30" y1="30" x2="30" y2="15" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+                </g>
+            </svg>
+        `;
+        
+        function generateIcon(size) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+            
+            const img = new Image();
+            const svg = new Blob([svgContent], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(svg);
+            
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0, size, size);
+                URL.revokeObjectURL(url);
+                
+                // Create preview
+                const preview = document.createElement('div');
+                preview.className = 'icon-preview';
+                preview.innerHTML = `
+                    <div>${size}x${size}</div>
+                    <canvas width="${size}" height="${size}" style="width: ${Math.min(size, 64)}px; height: ${Math.min(size, 64)}px;"></canvas>
+                    <br>
+                    <a href="#" onclick="downloadIcon(this, ${size})" style="font-size: 12px;">Download PNG</a>
+                `;
+                
+                const previewCanvas = preview.querySelector('canvas');
+                const previewCtx = previewCanvas.getContext('2d');
+                previewCtx.drawImage(img, 0, 0, size, size);
+                
+                iconsContainer.appendChild(preview);
+            };
+            
+            img.src = url;
+            return canvas;
+        }
+        
+        function downloadIcon(link, size) {
+            const canvas = link.parentElement.querySelector('canvas');
+            const url = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `icon-${size}x${size}.png`;
+            a.click();
+        }
+        
+        // Generate all icon sizes
+        sizes.forEach(size => generateIcon(size));
+    </script>
+</body>
+</html>
