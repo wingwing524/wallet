@@ -1682,6 +1682,17 @@ mark {
   margin-top: var(--spacing-xs);
 }
 
+.formula-result {
+  color: var(--success-color);
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: var(--border-radius-sm);
+  border-left: 3px solid var(--success-color);
+}
+
 .form-input.error,
 .form-select.error,
 .form-textarea.error {

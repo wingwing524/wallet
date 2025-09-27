@@ -2,6 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { expenseService } from '../services/expenseService';
 import { hapticFeedback } from '../utils/mobileUtils';
 
+// Safe formula evaluation function
+const evaluateFormula = (formula) => {
+  try {
+    // Remove spaces and validate characters
+    const cleanFormula = formula.replace(/\s/g, '');
+    
+    // Only allow numbers, operators, parentheses, and decimal points
+    if (!/^[0-9+\-*/().]+$/.test(cleanFormula)) {
+      return null;
+    }
+    
+    // Prevent empty or invalid expressions
+    if (!cleanFormula || cleanFormula === '' || /^[+\-*/]/.test(cleanFormula) || /[+\-*/]$/.test(cleanFormula)) {
+      return null;
+    }
+    
+    // Use Function constructor for safe evaluation (safer than eval)
+    const result = new Function('return ' + cleanFormula)();
+    
+    // Validate result is a finite number
+    if (typeof result === 'number' && isFinite(result) && result >= 0) {
+      return Math.round(result * 100) / 100; // Round to 2 decimal places
+    }
+    
+    return null;
+  } catch (error) {
+    return null;
+  }
+};
+
 const AddExpense = ({ onAdd }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -13,6 +43,7 @@ const AddExpense = ({ onAdd }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [calculatedAmount, setCalculatedAmount] = useState(null);
 
   useEffect(() => {
     loadCategories();
@@ -34,6 +65,12 @@ const AddExpense = ({ onAdd }) => {
       [name]: value
     }));
     
+    // Handle amount field with formula calculation
+    if (name === 'amount') {
+      const calculated = evaluateFormula(value);
+      setCalculatedAmount(calculated);
+    }
+    
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -46,8 +83,10 @@ const AddExpense = ({ onAdd }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.amount || isNaN(formData.amount) || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = 'Please enter a valid amount';
+    // Validate amount - can be a number or a valid formula
+    const calculated = evaluateFormula(formData.amount);
+    if (!formData.amount || calculated === null || calculated <= 0) {
+      newErrors.amount = 'Please enter a valid amount or formula (e.g., 10+20)';
     }
 
     if (!formData.date) {
@@ -67,9 +106,12 @@ const AddExpense = ({ onAdd }) => {
 
     setLoading(true);
     try {
+      // Calculate the final amount to send to backend
+      const finalAmount = evaluateFormula(formData.amount) || parseFloat(formData.amount);
+      
       await onAdd({
         ...formData,
-        amount: parseFloat(formData.amount)
+        amount: finalAmount
       });
       
       // Reset form
@@ -80,6 +122,7 @@ const AddExpense = ({ onAdd }) => {
         date: new Date().toISOString().split('T')[0],
         description: ''
       });
+      setCalculatedAmount(null);
       
       // Show success message
       alert('✅ Expense added successfully!');
@@ -103,15 +146,19 @@ const AddExpense = ({ onAdd }) => {
           <div className="form-group">
             <label className="form-label">Amount * ($)</label>
             <input
-              type="number"
+              type="text"
               name="amount"
               className={`form-input ${errors.amount ? 'error' : ''}`}
               value={formData.amount}
               onChange={handleChange}
-              placeholder="0.00"
-              step="0.01"
-              min="0"
+              placeholder="10 or 10+20 or 50*0.8"
             />
+            {/* Show calculated result */}
+            {formData.amount && calculatedAmount !== null && formData.amount !== calculatedAmount.toString() && (
+              <div className="formula-result">
+                = ${calculatedAmount.toFixed(2)}
+              </div>
+            )}
             {errors.amount && <div className="error-message">{errors.amount}</div>}
             
             {/* Quick amount buttons */}
@@ -123,7 +170,9 @@ const AddExpense = ({ onAdd }) => {
                   className="btn btn-secondary btn-sm"
                   onClick={() => {
                     hapticFeedback.light();
-                    setFormData(prev => ({ ...prev, amount: amount.toString() }));
+                    const newAmount = amount.toString();
+                    setFormData(prev => ({ ...prev, amount: newAmount }));
+                    setCalculatedAmount(amount); // Set calculated amount for quick buttons
                   }}
                 >
                   ${amount}
