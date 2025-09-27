@@ -14,7 +14,7 @@ const Dashboard = ({ expenses, loading }) => {
 
   useEffect(() => {
     calculateMonthlyData();
-  }, [expenses]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [expenses]);
 
   const calculateMonthlyData = () => {
     const currentDate = new Date();
