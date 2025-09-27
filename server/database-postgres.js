@@ -73,20 +73,6 @@ class ExpenseDatabase {
         )
       `;
 
-      // User preferences table
-      const createUserPreferencesTable = `
-        CREATE TABLE IF NOT EXISTS user_preferences (
-          user_id VARCHAR(255) PRIMARY KEY,
-          theme VARCHAR(20) DEFAULT 'light',
-          currency VARCHAR(10) DEFAULT 'USD',
-          notifications BOOLEAN DEFAULT true,
-          language VARCHAR(10) DEFAULT 'en',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-      `;
-
       // Create indexes
       const createIndexes = `
         CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
@@ -105,7 +91,6 @@ class ExpenseDatabase {
       await client.query(createUsersTable);
       await client.query(createFriendsTable);
       await client.query(createExpensesTable);
-      await client.query(createUserPreferencesTable);
       await client.query(createIndexes);
 
       await client.query('COMMIT');
@@ -760,54 +745,6 @@ class ExpenseDatabase {
       console.log(`🌱 Created ${seedUsers.length} seed users and ${seedExpenses.length} seed expenses`);
     } catch (error) {
       console.error('❌ Failed to create seed data:', error);
-    } finally {
-      client.release();
-    }
-  }
-
-  // User Preferences Methods
-  async getUserPreferences(userId) {
-    const client = await this.pool.connect();
-    try {
-      const result = await client.query(
-        'SELECT theme FROM user_preferences WHERE user_id = $1',
-        [userId]
-      );
-      
-      if (result.rows.length === 0) {
-        // Return default preferences if none exist
-        return {
-          theme: 'light'
-        };
-      }
-      
-      return result.rows[0];
-    } catch (error) {
-      console.error('❌ Failed to get user preferences:', error);
-      throw error;
-    } finally {
-      client.release();
-    }
-  }
-
-  async updateUserPreferences(userId, preferences) {
-    const client = await this.pool.connect();
-    try {
-      // Use UPSERT (INSERT ... ON CONFLICT) to insert or update
-      const result = await client.query(`
-        INSERT INTO user_preferences (user_id, theme, updated_at)
-        VALUES ($1, $2, CURRENT_TIMESTAMP)
-        ON CONFLICT (user_id) 
-        DO UPDATE SET 
-          theme = EXCLUDED.theme,
-          updated_at = CURRENT_TIMESTAMP
-        RETURNING theme
-      `, [userId, preferences.theme]);
-      
-      return result.rows[0];
-    } catch (error) {
-      console.error('❌ Failed to update user preferences:', error);
-      throw error;
     } finally {
       client.release();
     }

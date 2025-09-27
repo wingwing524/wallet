@@ -5,8 +5,7 @@ const Navigation = ({ activeTab, setActiveTab }) => {
     { id: 'dashboard', label: '📊 Dashboard', icon: '📊' },
     { id: 'expenses', label: '📝 Expenses', icon: '📝' },
     { id: 'friends', label: '👥 Friends', icon: '👥' },
-    { id: 'add', label: '➕ Add New', icon: '➕' },
-    { id: 'settings', label: '⚙️ Settings', icon: '⚙️' }
+    { id: 'add', label: '➕ Add New', icon: '➕' }
   ];
 
   return (
