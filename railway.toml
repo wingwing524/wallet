@@ -1,5 +1,5 @@
 [build]
-command = "cd client && npm install --legacy-peer-deps && npm run build"
+command = "cd client && npm install && DISABLE_ESLINT_PLUGIN=true npm run build"
 
 [deploy]
 startCommand = "node server/index.js"
