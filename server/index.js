@@ -399,6 +399,49 @@ app.get('/api/friends/:friendId/stats', authenticateToken, async (req, res) => {
   }
 });
 
+// User Preferences endpoints (work with or without authentication)
+app.get('/api/user/preferences', optionalAuth, async (req, res) => {
+  try {
+    if (req.user) {
+      // User is authenticated, get from database
+      const preferences = await db.getUserPreferences(req.user.id);
+      res.json(preferences);
+    } else {
+      // User not authenticated, return defaults
+      res.json({ theme: 'light' });
+    }
+  } catch (error) {
+    console.error('❌ Failed to get user preferences:', error);
+    res.status(500).json({ error: 'Failed to get user preferences' });
+  }
+});
+
+app.put('/api/user/preferences', optionalAuth, async (req, res) => {
+  try {
+    const { theme } = req.body;
+    
+    // Validate theme
+    const validThemes = ['light', 'dark'];
+    
+    if (theme && !validThemes.includes(theme)) {
+      return res.status(400).json({ error: 'Invalid theme' });
+    }
+    
+    if (req.user) {
+      // User is authenticated, save to database
+      const preferences = { theme: theme || 'light' };
+      const updatedPreferences = await db.updateUserPreferences(req.user.id, preferences);
+      res.json(updatedPreferences);
+    } else {
+      // User not authenticated, just return the theme (client will handle localStorage)
+      res.json({ theme: theme || 'light' });
+    }
+  } catch (error) {
+    console.error('❌ Failed to update user preferences:', error);
+    res.status(500).json({ error: 'Failed to update user preferences' });
+  }
+});
+
 // Get categories
 app.get('/api/categories', (req, res) => {
   res.json(categories);

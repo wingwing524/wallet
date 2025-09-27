@@ -7,9 +7,11 @@ import ExpenseList from './components/ExpenseList';
 import AddExpense from './components/AddExpense';
 import ExpenseModal from './components/ExpenseModal';
 import Friends from './components/Friends';
+import Settings from './components/Settings';
 import AuthProvider, { useAuth } from './components/AuthProvider';
 import AuthScreen from './components/AuthScreen';
 import ToastProvider from './components/ToastProvider';
+
 import { expenseService } from './services/expenseService';
 import { setPageSEO, seoData } from './utils/seoUtils';
 
@@ -21,6 +23,35 @@ function AppContent() {
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+
+  // Initialize theme on app startup
+  useEffect(() => {
+    initializeTheme();
+  }, [isAuthenticated]);
+
+  const initializeTheme = async () => {
+    if (isAuthenticated) {
+      try {
+        const response = await fetch('/api/user/preferences', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const theme = data.theme || 'light';
+          document.documentElement.setAttribute('data-theme', theme);
+          localStorage.setItem('theme', theme);
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to load theme preference:', error);
+      }
+    }
+    
+    // Fallback to localStorage
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  };
 
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
@@ -154,6 +185,10 @@ function AppContent() {
         
         {activeTab === 'add' && (
           <AddExpense onAdd={handleAddExpense} />
+        )}
+        
+        {activeTab === 'settings' && (
+          <Settings />
         )}
       </div>
 
